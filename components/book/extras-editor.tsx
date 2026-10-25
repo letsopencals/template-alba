@@ -32,11 +32,11 @@ export function ExtrasEditor({ flow, currency }: { flow: DentalBooking; currency
 							aria-pressed={flow.hygieneAfter}
 							onClick={() => flow.setHygieneAfter(!flow.hygieneAfter)}
 							className={clsx(
-								'grid w-full grid-cols-[auto_1fr_auto] items-center gap-4 rounded-[6px] border-[1.5px] p-3 text-left transition-colors sm:p-4',
+								'grid w-full grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 rounded-[6px] sm:grid-cols-[auto_1fr_auto] border-[1.5px] p-3 text-left transition-colors sm:p-4',
 								flow.hygieneAfter ? 'border-mint-3 bg-mint' : 'border-dashed border-line-2 hover:border-lagoon',
 							)}
 						>
-							{slot.clinician ? <Face name={slot.clinician.name} src={slot.clinician.imageUrl} className="h-16 w-12 rounded-[4px] text-[14px]" sizes="48px" /> : <span />}
+							{slot.clinician ? <Face name={slot.clinician.name} src={slot.clinician.imageUrl} className="row-span-2 h-16 w-12 rounded-[4px] text-[14px] sm:row-span-1" sizes="48px" /> : <span className="row-span-2 sm:row-span-1" />}
 							<span className="min-w-0">
 								<span className="block text-[16px] text-ink">The hygienist, straight after</span>
 								<span className="mt-1 block text-[14px] text-ink-2">
@@ -45,7 +45,7 @@ export function ExtrasEditor({ flow, currency }: { flow: DentalBooking; currency
 									<span className="tabular-nums text-ink">{hydrated ? timeLabel(slot.at, flow.timeZone) : '…'}</span>. Same chair, no second trip.
 								</span>
 							</span>
-							<span className="t-anno whitespace-nowrap text-ink">{flow.hygieneAfter ? 'On the track ✓' : `+ ${formatFee(flow.hygiene.price, currency)}`}</span>
+							<span className="t-anno col-start-2 whitespace-nowrap text-ink sm:col-start-auto">{flow.hygieneAfter ? 'On the track ✓' : `+ ${formatFee(flow.hygiene.price, currency)}`}</span>
 						</button>
 					) : (
 						<p className="text-[14px] text-ink-2">No hygienist is free straight after this time. You can add a hygiene visit afterwards.</p>
