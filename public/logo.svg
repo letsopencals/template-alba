@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 120" width="300" height="120"><g transform="translate(0,-2) scale(1.0)">
+  <path d="M30,40 C30,21 46,17 53,24 C56.5,27 63.5,27 67,24 C74,17 90,21 90,40 C90,58 84,67 82,81 C80,95 76,103 71,103 C65,103 66,87 60,87 C54,87 55,103 49,103 C44,103 40,95 38,81 C36,67 30,58 30,40 Z" fill="none" stroke="#0D3B3E" stroke-width="6.5" stroke-linejoin="round"/>
+  <clipPath id="sky0-2"><rect x="0" y="0" width="120" height="62"/></clipPath>
+  <circle cx="60" cy="62" r="13" fill="#C29A5B" clip-path="url(#sky0-2)"/>
+  <line x1="42" y1="62" x2="78" y2="62" stroke="#0D3B3E" stroke-width="4.5" stroke-linecap="round"/>
+  <g stroke="#C29A5B" stroke-width="3.6" stroke-linecap="round">
+    <line x1="60" y1="35" x2="60" y2="41"/>
+    <line x1="44" y1="44" x2="48.5" y2="48"/>
+    <line x1="76" y1="44" x2="71.5" y2="48"/>
+  </g>
+</g><g transform="translate(126,-12) scale(1.0)" fill="none" stroke="#0D3B3E" stroke-width="8.5">
+  <circle cx="20" cy="80" r="16"/><line x1="36" y1="62" x2="36" y2="100"/>
+  <line x1="56" y1="34" x2="56" y2="100"/>
+  <line x1="76" y1="34" x2="76" y2="100"/><circle cx="92" cy="80" r="16"/>
+  <circle cx="128" cy="80" r="16"/><line x1="144" y1="62" x2="144" y2="100"/>
+</g></svg>
