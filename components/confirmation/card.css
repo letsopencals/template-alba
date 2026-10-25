@@ -1,0 +1,92 @@
+/* The appointment-reminder card (thank-you, My Smile, previews). */
+@layer components {
+	.appt {
+		perspective: 1600px;
+		width: 100%;
+	}
+	.appt-inner {
+		position: relative;
+		aspect-ratio: 85 / 55;
+		transform-style: preserve-3d;
+		transition: transform 0.9s var(--ease-light);
+	}
+	.appt[data-flipped='true'] .appt-inner {
+		transform: rotateY(180deg);
+	}
+	.appt-face {
+		position: absolute;
+		inset: 0;
+		backface-visibility: hidden;
+		-webkit-backface-visibility: hidden;
+		overflow: hidden;
+		padding: clamp(16px, 3.4vw, 30px) clamp(18px, 3.8vw, 34px);
+		display: flex;
+		flex-direction: column;
+	}
+	.appt-back {
+		transform: rotateY(180deg);
+	}
+	/* Card stock: a faint linen grain and the printed rule at the top. */
+	.appt-face::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		background-image:
+			repeating-linear-gradient(0deg, rgba(13, 29, 31, 0.018) 0 1px, transparent 1px 3px),
+			repeating-linear-gradient(90deg, rgba(13, 29, 31, 0.014) 0 1px, transparent 1px 4px);
+		border-radius: inherit;
+	}
+	/* A filled-in blank: handwriting on a dotted rule. */
+	.blank {
+		display: inline-block;
+		min-width: 4ch;
+		padding: 0 0.25em 0.05em;
+		border-bottom: 1px dotted var(--color-ink-3);
+		font-family: var(--font-display);
+		color: var(--color-lagoon-2);
+		line-height: 1;
+	}
+	.appt-stamp {
+		position: absolute;
+		mix-blend-mode: multiply;
+		transform: rotate(-11deg);
+		opacity: 0.88;
+	}
+	/* A stack of cards: the ones behind peek out, fanned. */
+	.appt-stack {
+		position: relative;
+	}
+	.appt-stack > .appt-behind {
+		position: absolute;
+		inset: 0;
+		border-radius: var(--radius-card);
+		transition: transform 0.5s var(--ease-light);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.appt-inner {
+			transition: none;
+			transform: none !important;
+		}
+		.appt-back {
+			transform: none;
+			visibility: hidden;
+		}
+		.appt[data-flipped='true'] .appt-back {
+			visibility: visible;
+		}
+		.appt[data-flipped='true'] .appt-front {
+			visibility: hidden;
+		}
+	}
+
+	@media print {
+		.appt-inner {
+			transform: none !important;
+		}
+		.appt-back {
+			display: none;
+		}
+	}
+}

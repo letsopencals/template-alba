@@ -1,0 +1,363 @@
+/*
+ * The Chair planner (/book). Component classes only; tokens come from
+ * app/globals.css. Layered so Tailwind utilities still win.
+ */
+@layer components {
+	/* ── The chair-time track ──────────────────────────────────────────── */
+	.track {
+		position: relative;
+		border-top: 1px solid var(--color-line-2);
+		border-bottom: 1px solid var(--color-line-2);
+		background:
+			linear-gradient(180deg, color-mix(in oklab, var(--color-enamel) 70%, transparent), transparent 70%),
+			var(--color-porcelain);
+	}
+	.track-ruler {
+		position: relative;
+		height: 28px;
+		background-image: repeating-linear-gradient(
+			90deg,
+			var(--color-line-2) 0 1px,
+			transparent 1px calc(100% / var(--ticks))
+		);
+		background-size: 100% 6px;
+		background-repeat: no-repeat;
+		background-position: bottom left;
+	}
+	.track-ruler-label {
+		position: absolute;
+		top: 4px;
+		transform: translateX(-50%);
+		color: var(--color-ink-3);
+	}
+	.track-lane {
+		position: relative;
+		height: 92px;
+		background-image: repeating-linear-gradient(90deg, var(--color-line) 0 1px, transparent 1px calc(100% / var(--quarters)));
+	}
+
+	/* A visit block: width = minutes on the lane's scale. */
+	.vblock {
+		position: absolute;
+		top: 14px;
+		bottom: 14px;
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 0 14px 0 8px;
+		text-align: left;
+		border-radius: 6px;
+		color: var(--color-porcelain);
+		background:
+			linear-gradient(100deg, rgba(255, 255, 255, 0.14), transparent 40%),
+			linear-gradient(180deg, var(--color-lagoon-3), var(--color-lagoon));
+		box-shadow:
+			inset 0 1px 0 rgba(255, 255, 255, 0.25),
+			0 18px 30px -18px rgba(11, 59, 63, 0.55);
+		overflow: hidden;
+		transition:
+			left 0.5s var(--ease-light),
+			width 0.5s var(--ease-light),
+			background 0.4s ease;
+	}
+	.vblock::after {
+		/* the gleam that passes when a block lands or changes */
+		content: '';
+		position: absolute;
+		inset: -20% auto -20% -40%;
+		width: 30%;
+		background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+		transform: skewX(-18deg) translateX(-120%);
+		pointer-events: none;
+	}
+	.vblock[data-gleam='on']::after {
+		animation: block-gleam 1.1s var(--ease-light) both;
+	}
+	.vblock[data-kind='hygiene'] {
+		background:
+			linear-gradient(100deg, rgba(255, 255, 255, 0.3), transparent 40%),
+			linear-gradient(180deg, var(--color-mint-2), color-mix(in oklab, var(--color-mint-2) 70%, var(--color-mint-3)));
+		color: var(--color-ink);
+	}
+	.vblock[data-state='held'] {
+		background:
+			repeating-linear-gradient(135deg, transparent 0 7px, color-mix(in oklab, var(--color-brass) 22%, transparent) 7px 8px),
+			var(--color-brass-2);
+		color: var(--color-ink);
+		box-shadow: inset 0 0 0 1.5px var(--color-brass);
+	}
+	.vblock-ghost {
+		position: absolute;
+		top: 14px;
+		bottom: 14px;
+		border-radius: 6px;
+		border: 1.5px dashed var(--color-line-2);
+		color: var(--color-ink-2);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		transition:
+			border-color 0.2s ease,
+			color 0.2s ease,
+			background 0.2s ease;
+	}
+	.vblock-ghost:hover,
+	.vblock-ghost:focus-visible {
+		border-color: var(--color-lagoon);
+		color: var(--color-lagoon);
+		background: color-mix(in oklab, var(--color-lagoon-wash) 60%, transparent);
+	}
+	.vblock-tabs {
+		position: absolute;
+		top: 4px;
+		display: flex;
+		gap: 3px;
+	}
+	.vblock-tab {
+		height: 14px;
+		padding: 0 6px;
+		border-radius: 3px 3px 0 0;
+		font-family: var(--font-mono);
+		font-size: 8.5px;
+		line-height: 14px;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		background: var(--color-brass);
+		color: var(--color-enamel);
+		white-space: nowrap;
+	}
+	.vblock-face {
+		position: relative;
+		flex: none;
+		width: 44px;
+		height: 56px;
+		border-radius: 4px;
+		overflow: hidden;
+		background: color-mix(in oklab, var(--color-enamel) 25%, transparent);
+	}
+
+	/* ── Plan index (secondary navigation under the track) ─────────────── */
+	.plan-index button[aria-current='step'] {
+		color: var(--color-ink);
+		border-color: var(--color-ink);
+	}
+
+	/* ── Editors: the aperture swap ────────────────────────────────────── */
+	.swap-in {
+		animation: swap-open 0.6s var(--ease-light) both;
+	}
+
+	/* ── The Alba Line ─────────────────────────────────────────────────── */
+	.line-rail {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 27px;
+		height: 6px;
+		border-radius: 3px;
+		background: linear-gradient(90deg, var(--color-lagoon), var(--color-lagoon-3) 50%, var(--color-mint-3));
+	}
+	.station-dot {
+		position: relative;
+		width: 26px;
+		height: 26px;
+		border-radius: 999px;
+		background: var(--color-enamel);
+		border: 4px solid var(--color-lagoon);
+		transition:
+			transform 0.3s var(--ease-light),
+			box-shadow 0.3s ease;
+	}
+	[aria-pressed='true'] > .station-dot,
+	.station:hover > .station-dot {
+		transform: scale(1.18);
+		box-shadow:
+			0 0 0 6px color-mix(in oklab, var(--color-mint-2) 45%, transparent),
+			0 0 30px 6px color-mix(in oklab, var(--color-mint-2) 60%, transparent);
+	}
+	[aria-pressed='true'] > .station-dot {
+		background: var(--color-mint-2);
+	}
+
+	/* ── Light strip (days) ────────────────────────────────────────────── */
+	.day-cell {
+		--glow: 0;
+		position: relative;
+		background:
+			linear-gradient(
+				180deg,
+				color-mix(in oklab, var(--color-mint-2) calc(var(--glow) * 85%), transparent),
+				color-mix(in oklab, var(--color-mint) calc(var(--glow) * 100%), var(--color-porcelain))
+			);
+		border: 1px solid var(--color-line);
+		transition:
+			transform 0.25s var(--ease-light),
+			border-color 0.2s ease;
+	}
+	.day-cell:not(:disabled):hover {
+		border-color: var(--color-lagoon);
+	}
+	.day-cell[aria-pressed='true'] {
+		border-color: var(--color-ink);
+		box-shadow: 0 0 0 1px var(--color-ink) inset;
+		background: var(--color-ink);
+		color: var(--color-porcelain);
+	}
+	.day-cell:disabled {
+		background: repeating-linear-gradient(135deg, transparent 0 5px, var(--color-line) 5px 6px), var(--color-porcelain);
+		color: var(--color-ink-3);
+	}
+
+	/* The day ruler: starts as lit ticks. */
+	.day-ruler {
+		position: relative;
+		height: 44px;
+		background-image: repeating-linear-gradient(90deg, var(--color-line-2) 0 1px, transparent 1px calc(100% / var(--hours)));
+		border-bottom: 1px solid var(--color-line-2);
+	}
+	.day-tick {
+		position: absolute;
+		bottom: 0;
+		width: 3px;
+		height: 22px;
+		margin-left: -1px;
+		border-radius: 2px 2px 0 0;
+		background: var(--color-mint-3);
+		box-shadow: 0 0 10px 1px color-mix(in oklab, var(--color-mint-2) 80%, transparent);
+	}
+	.day-tick[data-on='true'] {
+		height: 40px;
+		background: var(--color-ink);
+		box-shadow: none;
+	}
+
+	.time-chip {
+		font-family: var(--font-mono);
+		font-variant-numeric: tabular-nums;
+		font-size: 13px;
+		letter-spacing: 0.02em;
+		border: 1px solid var(--color-line-2);
+		border-radius: 4px;
+		padding: 9px 0;
+		text-align: center;
+		transition:
+			background 0.15s ease,
+			border-color 0.15s ease,
+			color 0.15s ease;
+	}
+	.time-chip:hover {
+		border-color: var(--color-lagoon);
+		color: var(--color-lagoon);
+	}
+	.time-chip[aria-pressed='true'] {
+		background: var(--color-ink);
+		border-color: var(--color-ink);
+		color: var(--color-porcelain);
+	}
+
+	/* ── Who's in the chair: portrait strips ───────────────────────────── */
+	.strip {
+		position: relative;
+		flex: 1 1 0;
+		min-width: 0;
+		height: 300px;
+		border-radius: 6px;
+		overflow: hidden;
+		background: var(--color-porcelain-2);
+		transition: flex-grow 0.55s var(--ease-light);
+	}
+	.strip:hover,
+	.strip:focus-visible,
+	.strip[aria-pressed='true'] {
+		flex-grow: 2.6;
+	}
+	.strip[aria-pressed='true'] {
+		outline: 2px solid var(--color-ink);
+		outline-offset: 3px;
+	}
+	.strip-caption {
+		position: absolute;
+		inset: auto 0 0 0;
+		padding: 40px 12px 12px;
+		background: linear-gradient(0deg, rgba(6, 39, 41, 0.85), transparent);
+		color: var(--color-porcelain);
+	}
+	.strip-light {
+		background:
+			radial-gradient(120% 70% at 50% 0%, color-mix(in oklab, var(--color-mint-2) 80%, transparent), transparent 70%),
+			linear-gradient(180deg, var(--color-lagoon-3), var(--color-night));
+	}
+
+	/* ── Comfort dial ──────────────────────────────────────────────────── */
+	.dial-detent {
+		transition:
+			fill 0.2s ease,
+			r 0.2s ease;
+	}
+
+
+	/* ── Rows (treatments, extras) ─────────────────────────────────────── */
+	.row-btn {
+		display: grid;
+		width: 100%;
+		text-align: left;
+		border-bottom: 1px solid var(--color-line);
+		transition: background 0.2s ease;
+	}
+	.row-btn:hover {
+		background: linear-gradient(90deg, color-mix(in oklab, var(--color-mint) 80%, transparent), transparent 80%);
+	}
+	.row-btn[aria-pressed='true'] {
+		background: linear-gradient(90deg, var(--color-lagoon-wash), transparent 90%);
+	}
+	.minutes-bar {
+		height: 6px;
+		border-radius: 3px;
+		background: linear-gradient(90deg, var(--color-lagoon), var(--color-lagoon-3));
+	}
+	[data-kind='kids'] .minutes-bar {
+		background: linear-gradient(90deg, var(--color-brass), var(--color-brass-2));
+	}
+
+	/* Line notice ("sooner nearby"), in the transit voice. */
+	.line-notice {
+		display: grid;
+		grid-template-columns: auto 1fr auto;
+		gap: 14px;
+		align-items: center;
+		border-left: 4px solid var(--color-brass);
+		background: var(--color-brass-2);
+		padding: 12px 16px;
+		border-radius: 0 6px 6px 0;
+	}
+}
+
+@keyframes block-gleam {
+	to {
+		transform: skewX(-18deg) translateX(560%);
+	}
+}
+
+@keyframes swap-open {
+	from {
+		clip-path: inset(0 0 100% 0);
+		opacity: 0.2;
+	}
+	to {
+		clip-path: inset(0 0 0 0);
+		opacity: 1;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.vblock,
+	.strip,
+	.station-dot {
+		transition: none;
+	}
+	.vblock[data-gleam='on']::after,
+	.swap-in {
+		animation: none;
+	}
+}

@@ -1,0 +1,25 @@
+/* Shared controls for the planner and My Smile. */
+@layer components {
+	/* ── Segmented switch (Visit for) ──────────────────────────────────── */
+	.switch {
+		display: inline-grid;
+		grid-auto-flow: column;
+		grid-auto-columns: 1fr;
+		border: 1px solid var(--color-line-2);
+		border-radius: 6px;
+		padding: 3px;
+		background: var(--color-enamel);
+	}
+	.switch > button {
+		padding: 10px 16px;
+		border-radius: 4px;
+		font-size: 14px;
+		transition:
+			background 0.2s ease,
+			color 0.2s ease;
+	}
+	.switch > button[aria-pressed='true'] {
+		background: var(--color-ink);
+		color: var(--color-porcelain);
+	}
+}

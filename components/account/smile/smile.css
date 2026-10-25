@@ -1,0 +1,35 @@
+/* My Smile (/account). */
+@layer components {
+	.ring-draw {
+		stroke-dasharray: 1;
+		stroke-dashoffset: 0;
+		animation: ring-draw 1.4s var(--ease-light) both;
+	}
+	.smile-tabs {
+		display: flex;
+		gap: 0;
+		border-bottom: 1px solid var(--color-line);
+	}
+	.smile-tabs a {
+		margin-bottom: -1px;
+		padding: 12px 14px 12px 0;
+		border-bottom: 2px solid transparent;
+		transition: color 0.2s ease;
+	}
+	.smile-tabs a[aria-current='page'] {
+		border-color: var(--color-ink);
+		color: var(--color-ink);
+	}
+}
+
+@keyframes ring-draw {
+	from {
+		stroke-dashoffset: 1;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ring-draw {
+		animation: none;
+	}
+}
