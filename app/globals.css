@@ -1,0 +1,585 @@
+@import 'tailwindcss';
+
+/*
+ * Alba Dental: "Light & precision". DESIGN.md is the contract.
+ * Porcelain and enamel surfaces, deep lagoon teal, mint light, brass hairlines,
+ * a technical mono for chart annotations. Precise radii (2–6px); the only big
+ * curves belong to teeth, the arch and the appointment card.
+ */
+@theme {
+	/* Surfaces */
+	--color-porcelain: #f3f1eb;
+	--color-porcelain-2: #e9e6dd;
+	--color-enamel: #fcfbf8;
+	--color-bone: #ddd8cb;
+
+	/* Ink (teal-black) */
+	--color-ink: #0d1d1f;
+	--color-ink-2: #3b4b4c;
+	--color-ink-3: #6e7a79;
+	--color-ink-4: #9ca5a2;
+
+	/* Lagoon: the action colour, and the dark plates */
+	--color-lagoon: #0d3b3e;
+	--color-lagoon-2: #145a5e;
+	--color-lagoon-3: #1f7a7c;
+	--color-night: #061a1c;
+	--color-lagoon-wash: #dde9e6;
+
+	/* Mint: light, availability, "open now" */
+	--color-mint: #bfeedd;
+	--color-mint-2: #8fdcc0;
+	--color-mint-3: #2f8a6c;
+
+	/* Brass: hairlines, numerals, stamps. Never a fill for buttons. */
+	--color-brass: #a9844a;
+	--color-brass-2: #d8c39b;
+
+	/* Signal: pain, emergency, destructive */
+	--color-signal: #c4512f;
+	--color-signal-wash: #f6e1d8;
+
+	--color-line: rgba(13, 29, 31, 0.1);
+	--color-line-2: rgba(13, 29, 31, 0.2);
+	--color-line-light: rgba(252, 251, 248, 0.16);
+
+	/* Type (variables set by next/font on <html>, app/layout.tsx) */
+	--font-display: var(--font-serif-alba), 'Instrument Serif', Georgia, serif;
+	--font-sans: var(--font-sans-alba), 'Hanken Grotesk', system-ui, sans-serif;
+	--font-mono: var(--font-mono-alba), ui-monospace, 'SFMono-Regular', monospace;
+
+	/* Shape: instrument-precise */
+	--radius-xs: 2px;
+	--radius-sm: 4px;
+	--radius-md: 6px;
+	--radius-card: 18px;
+
+	/* Motion: light moves fast, settles slow */
+	--ease-light: cubic-bezier(0.2, 0.7, 0.1, 1);
+	--ease-snap: cubic-bezier(0.7, 0, 0.2, 1);
+
+	--shadow-enamel: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 1px 2px rgba(13, 29, 31, 0.06), 0 18px 40px -26px rgba(13, 59, 62, 0.35);
+	--shadow-lift: 0 30px 80px -40px rgba(6, 26, 28, 0.55);
+}
+
+html {
+	background: var(--color-porcelain);
+	color: var(--color-ink);
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	text-rendering: optimizeLegibility;
+	scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+}
+body {
+	font-family: var(--font-sans);
+	font-size: 16px;
+	line-height: 1.55;
+	min-height: 100svh;
+	overflow-x: clip;
+}
+::selection {
+	background: var(--color-mint);
+	color: var(--color-night);
+}
+:focus-visible {
+	outline: 2px solid var(--color-lagoon-3);
+	outline-offset: 3px;
+}
+.no-scrollbar {
+	scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+	display: none;
+}
+
+/* View transitions (components/light/view-transitions.tsx). The default
+   cross-fade is replaced by a short "exposure" change. */
+::view-transition-old(root) {
+	animation: 260ms var(--ease-light) both vt-out;
+}
+::view-transition-new(root) {
+	animation: 420ms var(--ease-light) both vt-in;
+}
+::view-transition-group(*) {
+	animation-duration: 520ms;
+	animation-timing-function: var(--ease-light);
+}
+@keyframes vt-out {
+	to {
+		opacity: 0;
+		filter: brightness(1.25) saturate(0.6);
+	}
+}
+@keyframes vt-in {
+	from {
+		opacity: 0;
+		filter: brightness(1.35) saturate(0.4);
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	::view-transition-group(*),
+	::view-transition-old(*),
+	::view-transition-new(*) {
+		animation: none !important;
+	}
+}
+
+@layer components {
+	/* ── Type ───────────────────────────────────────────────── */
+	.t-display {
+		font-family: var(--font-display);
+		font-weight: 400;
+		letter-spacing: -0.025em;
+		line-height: 0.92;
+	}
+	.t-mega {
+		font-family: var(--font-display);
+		font-size: clamp(3.6rem, 11vw, 11.5rem);
+		letter-spacing: -0.035em;
+		line-height: 0.86;
+	}
+	.t-xl {
+		font-family: var(--font-display);
+		font-size: clamp(2.8rem, 6.4vw, 6.25rem);
+		letter-spacing: -0.03em;
+		line-height: 0.92;
+	}
+	.t-lg {
+		font-family: var(--font-display);
+		font-size: clamp(2.2rem, 4.2vw, 4rem);
+		letter-spacing: -0.025em;
+		line-height: 0.98;
+	}
+	.t-md {
+		font-family: var(--font-display);
+		font-size: clamp(1.7rem, 2.6vw, 2.4rem);
+		letter-spacing: -0.02em;
+		line-height: 1.05;
+	}
+	.t-sm {
+		font-family: var(--font-display);
+		font-size: 1.5rem;
+		letter-spacing: -0.015em;
+		line-height: 1.1;
+	}
+	/* The accent word is DRAWN, not inked: an outline in lagoon (mint on dark
+	   plates), like the teeth on the chart. Never italic (sibling templates
+	   use italic accents). Small sizes fall back to a solid lagoon roman. */
+	.t-display em,
+	.t-mega em,
+	.t-xl em,
+	.t-lg em {
+		font-style: normal;
+		color: transparent;
+		-webkit-text-stroke: 1.15px var(--color-lagoon-3);
+		paint-order: stroke fill;
+	}
+	.t-mega em {
+		-webkit-text-stroke-width: 1.6px;
+	}
+	.t-md em,
+	.t-sm em {
+		font-style: normal;
+		color: var(--color-lagoon-3);
+	}
+	.plate-dark .t-display em,
+	.plate-dark .t-mega em,
+	.plate-dark .t-xl em,
+	.plate-dark .t-lg em {
+		-webkit-text-stroke-color: var(--color-mint);
+	}
+	.plate-dark .t-md em,
+	.plate-dark .t-sm em {
+		color: var(--color-mint);
+	}
+	@supports not (-webkit-text-stroke: 1px black) {
+		.t-display em,
+		.t-mega em,
+		.t-xl em,
+		.t-lg em {
+			color: var(--color-lagoon-3);
+		}
+	}
+	.t-lede {
+		font-size: clamp(1.05rem, 1.35vw, 1.25rem);
+		line-height: 1.5;
+		color: var(--color-ink-2);
+		text-wrap: pretty;
+	}
+	/* Chart annotation: the technical mono voice ("FDI 11", "W1G 8AE", "07:30"). */
+	.t-anno {
+		font-family: var(--font-mono);
+		font-size: 10.5px;
+		line-height: 1.4;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-ink-3);
+	}
+	.t-num {
+		font-family: var(--font-mono);
+		font-variant-numeric: tabular-nums;
+		letter-spacing: 0.02em;
+	}
+	.tabular {
+		font-variant-numeric: tabular-nums;
+	}
+
+	/* ── Structure ─────────────────────────────────────────── */
+	/* Page frame: content right of the chart rail on desktop. */
+	.frame {
+		width: 100%;
+		padding-inline: 20px;
+	}
+	@media (min-width: 640px) {
+		.frame {
+			padding-inline: 32px;
+		}
+	}
+	@media (min-width: 1024px) {
+		.frame {
+			padding-inline: 56px;
+		}
+	}
+	@media (min-width: 1536px) {
+		.frame {
+			padding-inline: 88px;
+		}
+	}
+	/* A plate: a full-width chapter, separated by hairlines, with registration
+	   crosses at its top corners (via .plate-cross children). */
+	.plate {
+		position: relative;
+		border-top: 1px solid var(--color-line);
+	}
+	.plate-dark {
+		background: var(--color-night);
+		color: var(--color-enamel);
+		--color-line: var(--color-line-light);
+	}
+	.plate-dark .t-anno {
+		color: rgba(252, 251, 248, 0.55);
+	}
+	.plate-dark .t-lede {
+		color: rgba(252, 251, 248, 0.72);
+	}
+	/* The plate heading row: [index] [title] ... [annotation]. */
+	.plate-head {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 12px 32px;
+		align-items: end;
+		padding-block: 28px 36px;
+	}
+	@media (min-width: 1024px) {
+		.plate-head {
+			grid-template-columns: 120px 1fr auto;
+		}
+	}
+	.cross {
+		position: absolute;
+		width: 11px;
+		height: 11px;
+		pointer-events: none;
+	}
+	.cross::before,
+	.cross::after {
+		content: '';
+		position: absolute;
+		background: var(--color-brass);
+	}
+	.cross::before {
+		left: 5px;
+		top: 0;
+		width: 1px;
+		height: 11px;
+	}
+	.cross::after {
+		top: 5px;
+		left: 0;
+		height: 1px;
+		width: 11px;
+	}
+	.hair {
+		height: 1px;
+		background: var(--color-line);
+	}
+	.hair-brass {
+		height: 1px;
+		background: linear-gradient(90deg, var(--color-brass) 0, var(--color-brass-2) 60%, transparent);
+	}
+	/* Dotted leader between a label and a value (price lists). */
+	.leader {
+		flex: 1;
+		min-width: 24px;
+		border-bottom: 1px dotted var(--color-line-2);
+		transform: translateY(-0.3em);
+	}
+
+	/* ── Surfaces ──────────────────────────────────────────── */
+	.enamel {
+		background: var(--color-enamel);
+		border: 1px solid var(--color-line);
+		border-radius: var(--radius-md);
+	}
+	.enamel-lift {
+		background: var(--color-enamel);
+		border-radius: var(--radius-md);
+		box-shadow: var(--shadow-enamel);
+	}
+	/* Porcelain card: the appointment card's material (reminder card, recall). */
+	.porcelain-card {
+		position: relative;
+		border-radius: var(--radius-card);
+		background:
+			radial-gradient(120% 90% at 12% 0%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0) 55%),
+			linear-gradient(160deg, #fdfcf9 0%, #f2efe7 100%);
+		box-shadow:
+			0 1px 0 rgba(255, 255, 255, 1) inset,
+			0 -1px 0 rgba(13, 29, 31, 0.05) inset,
+			0 2px 4px rgba(13, 29, 31, 0.06),
+			0 30px 60px -34px rgba(13, 59, 62, 0.45);
+	}
+	/* Fine dot grid like chart paper. */
+	.chart-paper {
+		background-image: radial-gradient(rgba(13, 29, 31, 0.13) 0.7px, transparent 0.8px);
+		background-size: 14px 14px;
+	}
+	.plate-dark .chart-paper,
+	.chart-paper-light {
+		background-image: radial-gradient(rgba(252, 251, 248, 0.14) 0.7px, transparent 0.8px);
+		background-size: 14px 14px;
+	}
+	/* The operating-lamp glow (mint light from above). */
+	.lamp {
+		background: radial-gradient(60% 55% at 50% 0%, rgba(191, 238, 221, 0.55), rgba(191, 238, 221, 0) 70%);
+	}
+	.image-well {
+		background: linear-gradient(135deg, var(--color-porcelain-2), var(--color-bone));
+		overflow: hidden;
+	}
+
+	/* ── Controls ──────────────────────────────────────────── */
+	.field {
+		width: 100%;
+		border-radius: var(--radius-sm);
+		border: 1px solid var(--color-line-2);
+		background: var(--color-enamel);
+		padding: 12px 14px;
+		font-size: 15px;
+		color: var(--color-ink);
+		outline: none;
+		transition:
+			border-color 160ms,
+			box-shadow 160ms;
+	}
+	.field::placeholder {
+		color: var(--color-ink-4);
+	}
+	.field:focus {
+		border-color: var(--color-lagoon-3);
+		box-shadow: 0 0 0 3px rgba(31, 122, 124, 0.16);
+	}
+	.field[aria-invalid='true'] {
+		border-color: var(--color-signal);
+	}
+	/* Underlined text link with a brass hairline that fills on hover. */
+	.link-hair {
+		background-image: linear-gradient(currentColor, currentColor), linear-gradient(var(--color-brass-2), var(--color-brass-2));
+		background-size:
+			0 1px,
+			100% 1px;
+		background-position:
+			0 100%,
+			0 100%;
+		background-repeat: no-repeat;
+		padding-bottom: 2px;
+		transition: background-size 380ms var(--ease-light);
+	}
+	.link-hair:hover {
+		background-size:
+			100% 1px,
+			100% 1px;
+	}
+
+	/* ── Light (components/light/*) ────────────────────────── */
+	/* Gleam: a band of light that sweeps once across an element when it comes
+	   into view (scroll-driven), or on hover with .gleam-hover. */
+	.gleam,
+	.gleam-hover {
+		position: relative;
+		overflow: hidden;
+		isolation: isolate;
+	}
+	.gleam::after,
+	.gleam-hover::after {
+		content: '';
+		position: absolute;
+		inset: -20% auto -20% 0;
+		width: 45%;
+		z-index: 2;
+		pointer-events: none;
+		background: linear-gradient(100deg, transparent 0%, rgba(255, 255, 255, 0) 20%, rgba(255, 255, 255, 0.55) 50%, rgba(255, 255, 255, 0) 80%, transparent 100%);
+		transform: translateX(-140%) skewX(-12deg);
+		mix-blend-mode: soft-light;
+	}
+	.gleam-hover:hover::after {
+		transition: transform 900ms var(--ease-light);
+		transform: translateX(320%) skewX(-12deg);
+	}
+	/* Status light: a small mint dot with a slow glow. */
+	.status-light {
+		display: inline-block;
+		width: 7px;
+		height: 7px;
+		border-radius: 999px;
+		background: var(--color-mint-3);
+		box-shadow: 0 0 0 3px rgba(47, 138, 108, 0.16);
+	}
+	.status-light[data-state='closed'] {
+		background: var(--color-ink-4);
+		box-shadow: none;
+	}
+	.status-light[data-state='soon'] {
+		background: var(--color-brass);
+		box-shadow: 0 0 0 3px rgba(169, 132, 74, 0.18);
+	}
+}
+
+/* Scroll-driven light (progressive: without support or with reduced motion,
+   everything is simply visible and still). */
+@media (prefers-reduced-motion: no-preference) {
+	@supports (animation-timeline: view()) {
+		.gleam::after {
+			animation: gleam-sweep linear both;
+			animation-timeline: view();
+			animation-range: entry 20% cover 55%;
+		}
+		/* Aperture: the element opens like a lens iris, from a horizontal slit. */
+		.aperture {
+			animation: aperture-open linear both;
+			animation-timeline: view();
+			animation-range: entry 0% cover 35%;
+		}
+		/* Develop: an over-exposed image settles into its true exposure. */
+		.develop {
+			animation: develop linear both;
+			animation-timeline: view();
+			animation-range: entry 0% cover 45%;
+		}
+		/* Rule: a hairline draws itself across. */
+		.rule-draw {
+			transform-origin: left center;
+			animation: rule-draw linear both;
+			animation-timeline: view();
+			animation-range: entry 10% cover 40%;
+		}
+		/* Dial: a number column rotates into place like a lens ring. */
+		.dial-in {
+			animation: dial-in linear both;
+			animation-timeline: view();
+			animation-range: entry 10% cover 40%;
+		}
+	}
+}
+@keyframes gleam-sweep {
+	from {
+		transform: translateX(-140%) skewX(-12deg);
+	}
+	to {
+		transform: translateX(320%) skewX(-12deg);
+	}
+}
+@keyframes aperture-open {
+	from {
+		clip-path: inset(46% 8% 46% 8% round 6px);
+	}
+	to {
+		clip-path: inset(0 0 0 0 round 0);
+	}
+}
+@keyframes develop {
+	from {
+		filter: brightness(1.75) saturate(0.15) contrast(0.8);
+	}
+	to {
+		filter: none;
+	}
+}
+@keyframes rule-draw {
+	from {
+		transform: scaleX(0);
+	}
+	to {
+		transform: scaleX(1);
+	}
+}
+@keyframes dial-in {
+	from {
+		transform: perspective(500px) rotateX(70deg);
+		opacity: 0.2;
+	}
+	to {
+		transform: none;
+		opacity: 1;
+	}
+}
+/* The hero sun rises once behind the porcelain tooth. */
+@keyframes sun-rise {
+	from {
+		transform: translateY(78%);
+	}
+	to {
+		transform: translateY(8%);
+	}
+}
+.sun-rise {
+	transform: translateY(8%);
+}
+@media (prefers-reduced-motion: no-preference) {
+	.sun-rise {
+		animation: sun-rise 2.4s var(--ease-light) 0.2s both;
+	}
+}
+/* Live board digits flip like a split-flap when they change (class toggled by JS). */
+@keyframes flap {
+	0% {
+		transform: perspective(300px) rotateX(-80deg);
+		opacity: 0;
+	}
+	100% {
+		transform: none;
+		opacity: 1;
+	}
+}
+.flap {
+	display: inline-block;
+	animation: flap 420ms var(--ease-snap) both;
+}
+@keyframes scan {
+	0% {
+		transform: translateY(-100%);
+	}
+	100% {
+		transform: translateY(100%);
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.flap {
+		animation: none;
+	}
+}
+
+/* Print: keep only what matters. */
+@media print {
+	[data-chrome] {
+		display: none !important;
+	}
+	body {
+		background: #fff;
+	}
+}
