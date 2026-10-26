@@ -6,7 +6,8 @@ import { useCart } from '@/contexts/cart-context';
 import { useBookingAddOns } from '@/hooks/use-booking-add-ons';
 import { questionTitle, useCheckoutQuestions } from '@/hooks/use-checkout-questions';
 import { invalidateStudioAvailability, useStudioAvailability } from '@/hooks/use-studio-availability';
-import { CHECKBOX_FALSE, comfortOption, indexIntake, intakeKey, isHandledByComposer, isRequiredFor, isVisible, visitForOption, type AnswerMap, type Comfort, type VisitFor } from '@/lib/intake';
+import { CHECKBOX_FALSE, comfortOption, indexIntake, intakeKey, isHandledByComposer, isRequiredFor, isVisible, keyMapOf, patientOf, visitForOption, type AnswerMap, type Comfort, type VisitFor } from '@/lib/intake';
+import { rememberPatient } from '@/components/confirmation/snapshot';
 import { localDate, nextFree, slotOf, startsByDay, startsOf, type Start } from '@/lib/slots';
 import { siteConfig } from '@/lib/site-config';
 import type { Treatment } from '@/lib/catalog';
@@ -446,6 +447,8 @@ export function useDentalBooking({
 					setError({ message: 'Your visit is held, but the hygienist slot was just taken. You can add a hygiene visit separately.', code: 'other' });
 				}
 			}
+			const patient = patientOf(buildAnswers(), keyMapOf(questions));
+			rememberPatient(itemIds, { name: patient.name, nickname: patient.nickname });
 			setHeld({ itemIds });
 			return true;
 		} catch {
@@ -454,7 +457,7 @@ export function useDentalBooking({
 		} finally {
 			setBooking(false);
 		}
-	}, [treatment, location, selected, finalStaffId, missing.length, booking, held, fieldErrors, postBook, cartId, addOns, buildAnswers, setCart, resetTime, withHygiene, hygiene, hygieneSlot]);
+	}, [treatment, location, selected, finalStaffId, missing.length, booking, held, fieldErrors, postBook, cartId, addOns, buildAnswers, setCart, resetTime, withHygiene, hygiene, hygieneSlot, questions]);
 
 	/** Release the hold and reopen the flow with every choice intact. */
 	const [releasing, setReleasing] = useState(false);

@@ -1,4 +1,5 @@
 import { cache } from 'react';
+import { compareOptions } from '@/lib/variant-order';
 import { getClinics, getCollection, getProducts, getStoreSettings } from '@/lib/server-data';
 import {
 	DEFAULT_ROOM,
@@ -107,7 +108,7 @@ export const getKidsWorld = cache(async (): Promise<KidsWorld> => {
 		}
 		const options = variants
 			.map((v) => ({ slug: v.slug, label: v.variantTitle ?? '', price: v.price ?? 0, minutes: Math.round((v.duration ?? 0) / 60) }))
-			.sort((a, b) => (order.get(a.slug) ?? 99) - (order.get(b.slug) ?? 99));
+			.sort((a, b) => compareOptions({ ...a, duration: a.minutes }, { ...b, duration: b.minutes }));
 		services.push({
 			...building,
 			key: group.id,

@@ -22,6 +22,8 @@ export interface SnapshotVisit {
 	from: string;
 	to: string;
 	patientName: string | null;
+	/** What to call a child on the card and the bravery certificate. */
+	nickname?: string | null;
 	addOns: string[];
 }
 
@@ -33,10 +35,39 @@ export interface VisitSnapshot {
 }
 
 const KEY = 'alba:visit-snapshot';
+const PATIENTS_KEY = 'alba:held-patients';
 const MAX_AGE = 6 * 60 * 60 * 1000;
+
+/** Who a held cart item is for. Cart payloads don't carry intake answers, so the planner remembers them. */
+export interface HeldPatient {
+	name: string | null;
+	nickname: string | null;
+}
+
+function readPatients(): Record<string, HeldPatient> {
+	try {
+		const raw = sessionStorage.getItem(PATIENTS_KEY);
+		return raw ? (JSON.parse(raw) as Record<string, HeldPatient>) : {};
+	} catch {
+		return {};
+	}
+}
+
+/** Called by the chair planner when it holds visits, keyed by cart item id. */
+export function rememberPatient(itemIds: string[], patient: HeldPatient): void {
+	if (!patient.name && !patient.nickname) return;
+	try {
+		const all = readPatients();
+		for (const id of itemIds) all[id] = patient;
+		sessionStorage.setItem(PATIENTS_KEY, JSON.stringify(all));
+	} catch {
+		/* private mode: the card falls back to "you" */
+	}
+}
 
 export function snapshotFromCart(items: CartItem[], currency: string | null, total: number): VisitSnapshot {
 	const visits: SnapshotVisit[] = [];
+	const held = readPatients();
 	for (const item of items) {
 		const line = toCartLine(item);
 		const appt = item.appointment;
@@ -55,7 +86,8 @@ export function snapshotFromCart(items: CartItem[], currency: string | null, tot
 			video: line.video,
 			from: line.from,
 			to: line.to,
-			patientName: line.patientName,
+			patientName: line.patientName ?? held[line.id]?.name ?? null,
+			nickname: held[line.id]?.nickname ?? null,
 			addOns: line.addOns.map((a) => a.title),
 		});
 	}

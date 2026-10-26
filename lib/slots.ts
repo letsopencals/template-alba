@@ -1,7 +1,9 @@
 /**
  * Client-safe slot maths over the windows from `/api/availability/studio`.
- * A start is offered every `STEP` minutes from a window's start, while the
- * whole visit still fits inside the window (the same grid the API uses).
+ * A start is offered on every `STEP`-minute mark inside a window, while the
+ * whole visit still fits. Windows can open at odd minutes (today's opens at
+ * "now + minimum notice"), so starts snap to the quarter-hour grid rather than
+ * stepping from the window's first minute.
  */
 
 /** [fromMs, toMs) in UTC. */
@@ -41,7 +43,7 @@ export function startsOf(a: StudioAvailability | null | undefined, staffId: stri
 	for (const [sid, windows] of Object.entries(a.windows)) {
 		if (staffId && sid !== staffId) continue;
 		for (const [from, to] of windows) {
-			for (let t = from; t + dur <= to; t += STEP) {
+			for (let t = Math.ceil(from / STEP) * STEP; t + dur <= to; t += STEP) {
 				if (t < now) continue;
 				const list = byAt.get(t);
 				if (list) list.push(sid);

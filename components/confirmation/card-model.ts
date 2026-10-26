@@ -122,7 +122,7 @@ export function cardsFromSnapshot(s: VisitSnapshot | null, departments: Departme
 			address: v.address,
 			onlineLink: null,
 			patientName: v.patientName,
-			nickname: null,
+			nickname: v.nickname ?? null,
 			addOns: v.addOns,
 		}),
 	);

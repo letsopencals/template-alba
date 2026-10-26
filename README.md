@@ -4,7 +4,7 @@ A production-ready booking website for a multi-location dental practice, with a 
 
 **[View Live Demo →](https://template-alba.vercel.app)**
 
-![Alba Dental: the home page with the porcelain tooth hero and the chart rail](docs/homepage-hero.png)
+![Alba Dental: the home page and the Alba Kids storybook on a laptop and a phone on a limestone desk in a dental studio](docs/cover.png)
 
 Light and precise: porcelain and enamel surfaces, deep lagoon teal, mint light and brass hairlines, set in Instrument Serif with Hanken Grotesk and Martian Mono for the chart annotations. Set in **London** (GBP, `Europe/London`) with five studios (Marylebone, Shoreditch, Notting Hill, Canary Wharf, Clapham) plus video consultations, and 26 clinicians: dentists, hygienists, paediatric dentists, orthodontists, an implant surgeon and an endodontist. And for children, **Alba Kids**: a cut-paper, risograph-printed picture book called *Pip and the Tooth Town adventure*. MIT licensed: clone it, rebrand it, ship it.
 

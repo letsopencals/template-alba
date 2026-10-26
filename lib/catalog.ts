@@ -1,6 +1,7 @@
 import type { ProductCollectionResponse, ProductListItemResponse } from '@opencals/storefront-sdk';
 import { siteConfig, type DepartmentKind } from '@/lib/site-config';
 import type { DepartmentIndex } from '@/lib/clinicians';
+import { compareOptions } from '@/lib/variant-order';
 
 /**
  * The treatment catalogue: every bookable variant and every department
@@ -130,6 +131,7 @@ export function toGroups(treatments: Treatment[]): TreatmentGroup[] {
 		g.variants.push(t);
 		g.fromPrice = Math.min(g.fromPrice, t.price);
 	}
+	for (const g of map.values()) g.variants.sort((a, b) => compareOptions({ label: a.option, price: a.price, duration: a.duration }, { label: b.option, price: b.price, duration: b.duration }));
 	return [...map.values()];
 }
 

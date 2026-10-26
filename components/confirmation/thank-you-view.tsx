@@ -42,10 +42,13 @@ export function ThankYouView({ departments }: { departments: DepartmentIndex }) 
 		const fromOrder = cardsFromOrder(order, departments);
 		const list = fromOrder.length ? fromOrder : hydrated ? cardsFromSnapshot(readSnapshot(), departments) : [];
 		const byId = new Map((record?.visits ?? []).map((v) => [v.id, v]));
-		return list.map((c) => {
-			const v = byId.get(c.id);
-			return v ? { ...c, patientName: v.patient.name, nickname: v.patient.nickname, kids: c.kids || v.patient.visitFor === 'child' } : c;
-		});
+		// Earliest visit first: the card stack, "See you …" and the recall all key off cards[0].
+		return list
+			.map((c) => {
+				const v = byId.get(c.id);
+				return v ? { ...c, patientName: v.patient.name, nickname: v.patient.nickname, kids: c.kids || v.patient.visitFor === 'child' } : c;
+			})
+			.sort((a, b) => a.from - b.from);
 	}, [order, departments, record, hydrated]);
 
 	const loading = isLoading || status === 'loading' || !hydrated;
