@@ -242,6 +242,7 @@ Alba Dental is one of the open-source booking templates built on the Opencals St
 - **[Fluently](https://github.com/letsopencals/template-fluently)** — a language-school template (New York) with group classes, live seats, private lessons and online lessons. [Live demo](https://template-fluently.vercel.app)
 - **[Bali Villa Rentals](https://github.com/letsopencals/template-bali-villas)** — a villa-rental template (Bali, demo brand Lumbung Sidemen) with nightly stays and fixed check-in and check-out. [Live demo](https://template-bali-villas.vercel.app)
 - **[Tensile](https://github.com/letsopencals/template-reformer)** — a reformer Pilates studio template (Berlin) with a multi-studio class timetable, beds left, privates and workshops. [Live demo](https://template-reformer.vercel.app)
+- **[Gable](https://github.com/letsopencals/template-gable)** — a coworking template (Dublin, Cork and Galway) with six houses, desks, meeting rooms, booths and studios planned on one day sheet, with extras suggested in the gaps. [Live demo](https://template-gable.vercel.app)
 
 See all templates and the Storefront API at **[opencals.com/developers](https://opencals.com/developers)**.
 
