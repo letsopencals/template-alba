@@ -30,7 +30,6 @@ During deployment, Vercel will ask you to set environment variables:
 |----------|-------|
 | `OPENCALS_API_KEY` | Your private storefront key (starts with `spk_`) |
 | `AUTH_SECRET` | Any random string, used for session encryption |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | *(optional)* Stripe publishable key for card payments |
 
 That's it.
 
@@ -224,7 +223,6 @@ lib/                           # site-config, catalog, intake, slots, studios, t
 |----------|----------|-------------|
 | `OPENCALS_API_KEY` | Yes | Private storefront key (`spk_`) from your Opencals dashboard |
 | `AUTH_SECRET` | Yes | Random string for NextAuth session encryption |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | No | Stripe publishable key for card payments |
 | `OPENCALS_API_URL` | No | Override API base URL (defaults to production) |
 | `ALBA_PREVIEW` | No | `1` enables the `/preview/*` fixture screens in production |
 
