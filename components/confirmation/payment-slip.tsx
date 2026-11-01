@@ -1,7 +1,7 @@
 'use client';
 
 import { clsx } from 'clsx';
-import type { PaymentInstructions } from '@opencals/storefront-sdk';
+import type { PaymentInstructions, PaymentProviderName } from '@opencals/storefront-sdk';
 import { invoiceHref } from '@/lib/booking-state';
 import { siteConfig } from '@/lib/site-config';
 
@@ -11,7 +11,7 @@ const when = (iso: string) => {
 	return new Intl.DateTimeFormat('en-GB', { timeZone: siteConfig.timezone, weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(d);
 };
 
-const TITLE: Record<string, string> = {
+const TITLE: Partial<Record<PaymentProviderName, string>> = {
 	bank_transfer: 'Pay by bank transfer',
 	stripe_invoice: 'Pay your invoice',
 	cash: 'Pay at the studio',
@@ -35,7 +35,7 @@ export function PaymentSlip({
 	reference?: string | null;
 	className?: string;
 }) {
-	const provider = instructions?.provider ?? '';
+	const provider = instructions?.provider;
 	const due = (instructions?.dueAt ?? dueAt) ? when((instructions?.dueAt ?? dueAt)!) : null;
 	const link = invoiceHref(instructions?.hostedInvoiceUrl);
 	const b = instructions?.bankDetails;
@@ -52,7 +52,7 @@ export function PaymentSlip({
 		<section aria-labelledby="payment-slip-title" className={clsx('border-l-2 border-brass bg-enamel px-5 py-5 sm:px-6', className)}>
 			<p className="t-anno">Payment · to confirm the visit</p>
 			<h2 id="payment-slip-title" className="t-md mt-2 text-ink">
-				{TITLE[provider] ?? 'How to pay'}
+				{(provider ? TITLE[provider] : undefined) ?? 'How to pay'}
 			</h2>
 			{due ? (
 				<p className="mt-2 text-[14.5px] text-ink">

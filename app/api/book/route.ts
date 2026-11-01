@@ -14,10 +14,11 @@ import { handleApiError } from '@/lib/api-error-handler';
 import { revalidateAvailability } from '@/lib/availability-server';
 
 /**
- * The appointment customer shapes carry no `kind`, so this route's own body adds one to say which
- * shape it is (untrusted JSON, so every field is optional until checked).
+ * Either appointment customer shape, told apart by its `kind` (untrusted JSON, so every field is
+ * optional until checked).
  */
-type CustomerInput = { kind: 'new' | 'existing' } & Partial<ExistingAppointmentCustomer & NewAppointmentCustomer>;
+type CustomerInput = Pick<ExistingAppointmentCustomer | NewAppointmentCustomer, 'kind'> &
+	Partial<Omit<ExistingAppointmentCustomer, 'kind'> & Omit<NewAppointmentCustomer, 'kind'>>;
 
 interface BookInput {
 	slot: AppointmentDateRangeSlot;
