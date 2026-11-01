@@ -1,4 +1,4 @@
-import type { PaymentInstructions, StorefrontAppointmentPendingReason } from '@opencals/storefront-sdk';
+import type { AppointmentStatusType, CheckoutOrderAppointment, PaymentInstructions, StorefrontAppointmentPendingReason } from '@opencals/storefront-sdk';
 
 /**
  * Booked, or still waiting on the patient's payment / the studio's say-so.
@@ -6,9 +6,10 @@ import type { PaymentInstructions, StorefrontAppointmentPendingReason } from '@o
  * confirm automatically leave a visit `pending` with no reason for a moment
  * while a job confirms it. That is booked.
  */
-export type BookingState = 'booked' | 'awaiting_payment' | 'awaiting_approval';
+export type BookingState = 'booked' | StorefrontAppointmentPendingReason;
 
-type Appt = { status?: string | null; pendingReason?: StorefrontAppointmentPendingReason | null } | null | undefined;
+/** Any order read's appointment (checkout submit, order detail): only the state matters. */
+type Appt = Partial<Pick<CheckoutOrderAppointment, 'status' | 'pendingReason'>> | null | undefined;
 
 export function bookingStateOf(appts: Appt[]): BookingState {
 	const reasons = appts.flatMap((a) => (a?.status === 'pending' && a.pendingReason ? [a.pendingReason] : []));
@@ -18,7 +19,7 @@ export function bookingStateOf(appts: Appt[]): BookingState {
 }
 
 /** The appointment-card stamp for a waiting visit, or null when it's booked. */
-export function waitingLabel(status: string | null | undefined, reason: StorefrontAppointmentPendingReason | null | undefined): string | null {
+export function waitingLabel(status: AppointmentStatusType | null | undefined, reason: StorefrontAppointmentPendingReason | null | undefined): string | null {
 	if (status !== 'pending' || !reason) return null;
 	return reason === 'awaiting_payment' ? 'Awaiting payment' : 'Awaiting the studio';
 }

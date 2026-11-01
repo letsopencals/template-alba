@@ -1,12 +1,12 @@
 'use client';
 
 import { clsx } from 'clsx';
+import type { CartResponse } from '@opencals/storefront-sdk';
 import { formatPrice } from '@/lib/format';
-import type { CartWithDiscounts } from '@/types/discount';
 import { cartSubtotal } from './cart-line';
 
 /** Subtotal, discounts, optional tax and the total, as dotted leader lines (the fee list voice). */
-export function CartTotals({ cart, showTax = false, className }: { cart: CartWithDiscounts; showTax?: boolean; className?: string }) {
+export function CartTotals({ cart, showTax = false, className }: { cart: CartResponse; showTax?: boolean; className?: string }) {
 	const currency = cart.paymentCurrencyCode;
 	const discounts = cart.appliedDiscounts ?? [];
 	const total = cart.total ?? cart.subtotal ?? 0;

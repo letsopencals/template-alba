@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from 'react';
 import dynamic from 'next/dynamic';
+import type { CustomerProviderCatalogItem } from '@opencals/storefront-sdk';
 import { useCheckout } from '@/contexts/checkout-context';
 import { Button } from '@/components/ui/button';
 import { PAYMENT_METHOD_FORM_ID } from './form-ids';
@@ -20,21 +21,23 @@ const StripePayment = dynamic(() => import('@/components/checkout/stripe-payment
 	),
 });
 
-const TITLE: Record<string, string> = {
+type ProviderName = CustomerProviderCatalogItem['name'];
+
+const TITLE: Partial<Record<ProviderName, string>> = {
 	stripe: 'Card',
 	cash: 'Pay at the studio',
 	bank_transfer: 'Bank transfer',
 	stripe_invoice: 'Pay by invoice',
 	no_payment_required: 'Nothing to pay today',
 };
-const COPY: Record<string, string> = {
+const COPY: Partial<Record<ProviderName, string>> = {
 	stripe: 'Card, Apple Pay or Google Pay, paid securely now.',
 	cash: 'We hold the chair now. Pay at reception on the day, or after a video consultation.',
 	bank_transfer: 'The transfer details are on your appointment card and in your inbox.',
 	stripe_invoice: 'We email an invoice you can pay online, with the date it’s due.',
 	no_payment_required: 'This visit is free, so it’s confirmed straight away.',
 };
-const ACTION: Record<string, string> = {
+const ACTION: Partial<Record<ProviderName, string>> = {
 	stripe: 'Continue to card',
 	cash: 'Confirm, pay at the studio',
 	bank_transfer: 'Confirm, pay by transfer',
@@ -49,7 +52,7 @@ const ACTION: Record<string, string> = {
  */
 export function PaymentPart({ payLabel }: { payLabel: string }) {
 	const c = useCheckout();
-	const [chosen, setChosen] = useState<string | undefined>();
+	const [chosen, setChosen] = useState<ProviderName | undefined>();
 	const method = chosen && c.providers.some((p) => p.name === chosen) ? chosen : c.providers[0]?.name;
 
 	if (c.step === 'customer') {
@@ -110,7 +113,7 @@ export function PaymentPart({ payLabel }: { payLabel: string }) {
 			<p className="mt-4 text-[12.5px] text-ink-3">Claiming on dental insurance? We give you an itemised receipt to send in after the visit.</p>
 			{c.providers.find((p) => p.name === method)?.checkoutMode === 'internal' ? (
 				<Button type="submit" size="lg" className="mt-6" disabled={!method || c.submitting || c.isExpired}>
-					{c.submitting ? 'One moment…' : (ACTION[method ?? ''] ?? 'Continue to card')}
+					{c.submitting ? 'One moment…' : ((method && ACTION[method]) ?? 'Continue to card')}
 				</Button>
 			) : (
 				<div className="mt-6">

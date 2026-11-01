@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import type { CheckoutQuestionResponse } from '@opencals/storefront-sdk';
+import type { CheckoutQuestionAnswer, CheckoutQuestionResponse } from '@opencals/storefront-sdk';
 import { useCart } from '@/contexts/cart-context';
 import { useBookingAddOns } from '@/hooks/use-booking-add-ons';
 import { questionTitle, useCheckoutQuestions } from '@/hooks/use-checkout-questions';
@@ -374,7 +374,7 @@ export function useDentalBooking({
 	// ------------------------------------------------------------ Payload
 	const buildAnswers = useCallback(
 		(onlyShared = false) => {
-			const out: { questionId: string; question: string; answer: string }[] = [];
+			const out: CheckoutQuestionAnswer[] = [];
 			if (intake.visitFor) out.push({ questionId: intake.visitFor.id, question: questionTitle(intake.visitFor), answer: visitForOption(intake.visitFor, effectiveFor) });
 			if (intake.comfort && comfortFace) out.push({ questionId: intake.comfort.id, question: questionTitle(intake.comfort), answer: comfortOption(intake.comfort, COMFORT_OF_FACE[comfortFace]!) });
 			for (const q of noteQuestions) {
