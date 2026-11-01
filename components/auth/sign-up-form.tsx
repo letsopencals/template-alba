@@ -11,8 +11,10 @@ import { AuthLink, AuthShell } from '@/components/auth/auth-shell';
 import { Field, fieldAria } from '@/components/auth/field';
 import { Notice } from '@/components/auth/auth-feedback';
 import { sendJson } from '@/components/auth/post-json';
+import { mapFieldErrors } from '@/lib/field-errors';
 
 const DEFAULTS: SignUpFormValues = { firstName: '', lastName: '', email: '', password: '' };
+const FIELD_KEYS = Object.keys(DEFAULTS) as (keyof SignUpFormValues)[];
 
 /** New patient account. Verification email next, then the six-digit code works too. */
 export function SignUpForm() {
@@ -38,10 +40,14 @@ export function SignUpForm() {
 			router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
 			return;
 		}
-		for (const [k, msg] of Object.entries(result.fields)) {
-			if (k in DEFAULTS) form.setError(k as keyof SignUpFormValues, { message: msg });
+		if (result.status === 409) {
+			setError('There’s already an account with this email. Try signing in with a code instead.');
+			return;
 		}
-		setError(result.status === 409 ? 'There’s already an account with this email. Try signing in with a code instead.' : result.message);
+		// Each field error goes under its field; the notice is only for what has no field here.
+		const { fields, unmapped } = mapFieldErrors(result.fieldErrors, FIELD_KEYS);
+		for (const [k, msg] of Object.entries(fields) as [keyof SignUpFormValues, string][]) form.setError(k, { message: msg });
+		if (Object.keys(fields).length === 0 || unmapped.length > 0) setError(result.message);
 	};
 
 	return (

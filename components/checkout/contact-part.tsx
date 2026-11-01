@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { describedBy, Field } from './field';
 import { DETAILS_FORM_ID } from './form-ids';
 import { countryOptions } from './countries';
+import { PHONE_HINT } from '@/lib/field-errors';
 
 const CONSENT_COPY: Record<ConsentChannel, { label: string; hint: string }> = {
 	email: { label: 'Email me Alba news and the odd care tip', hint: 'A few times a year. Unsubscribe whenever you like.' },
@@ -92,7 +93,7 @@ export function ContactPart() {
 						label="Mobile"
 						required={fields.phone === 'required'}
 						optional={fields.phone === 'optional'}
-						hint="Only if a time has to move."
+						hint={`${PHONE_HINT}. Only if a time has to move.`}
 						error={phoneError}
 					>
 						<Input
@@ -103,7 +104,7 @@ export function ContactPart() {
 							required={fields.phone === 'required'}
 							value={c.phone}
 							onChange={(e) => c.setPhone(e.target.value)}
-							placeholder="07700 900123"
+							placeholder="+44 7911 123456"
 							aria-invalid={phoneError ? true : undefined}
 							aria-describedby={describedBy('checkout-phone', true, phoneError)}
 						/>
@@ -178,17 +179,17 @@ function BillingFields({ billing, errors, onChange, fields }: BillingFieldsProps
 			<legend className="t-anno mb-3 text-ink-2">BL · Billing address</legend>
 			{fields.companyName !== 'hidden' ? (
 				<Field htmlFor="billing-company" label="Company" required={fields.companyName === 'required'} optional={fields.companyName === 'optional'} error={err('companyName')}>
-					<Input id="billing-company" autoComplete="organization" value={billing.companyName} onChange={(e) => onChange({ companyName: e.target.value })} />
+					<Input id="billing-company" autoComplete="organization" value={billing.companyName} onChange={(e) => onChange({ companyName: e.target.value })} aria-invalid={err('companyName') ? true : undefined} aria-describedby={describedBy('billing-company', false, err('companyName'))} />
 				</Field>
 			) : null}
 			{fields.taxId !== 'hidden' ? (
 				<Field htmlFor="billing-tax" label="VAT number" required={fields.taxId === 'required'} optional={fields.taxId === 'optional'} error={err('taxRegistrationId')}>
-					<Input id="billing-tax" value={billing.taxRegistrationId} onChange={(e) => onChange({ taxRegistrationId: e.target.value })} />
+					<Input id="billing-tax" value={billing.taxRegistrationId} onChange={(e) => onChange({ taxRegistrationId: e.target.value })} aria-invalid={err('taxRegistrationId') ? true : undefined} aria-describedby={describedBy('billing-tax', false, err('taxRegistrationId'))} />
 				</Field>
 			) : null}
 			<div className="sm:col-span-2">
 				<Field htmlFor="billing-line1" label="Address" required={required} error={err('addressLine1')}>
-					<Input id="billing-line1" autoComplete="address-line1" required={required} value={billing.addressLine1} onChange={(e) => onChange({ addressLine1: e.target.value })} />
+					<Input id="billing-line1" autoComplete="address-line1" required={required} value={billing.addressLine1} onChange={(e) => onChange({ addressLine1: e.target.value })} aria-invalid={err('addressLine1') ? true : undefined} aria-describedby={describedBy('billing-line1', false, err('addressLine1'))} />
 				</Field>
 			</div>
 			<div className="sm:col-span-2">
@@ -197,13 +198,21 @@ function BillingFields({ billing, errors, onChange, fields }: BillingFieldsProps
 				</Field>
 			</div>
 			<Field htmlFor="billing-city" label="Town or city" required={required} error={err('city')}>
-				<Input id="billing-city" autoComplete="address-level2" required={required} value={billing.city} onChange={(e) => onChange({ city: e.target.value })} />
+				<Input id="billing-city" autoComplete="address-level2" required={required} value={billing.city} onChange={(e) => onChange({ city: e.target.value })} aria-invalid={err('city') ? true : undefined} aria-describedby={describedBy('billing-city', false, err('city'))} />
 			</Field>
 			<Field htmlFor="billing-postcode" label="Postcode" required={required} error={err('postalCode')}>
-				<Input id="billing-postcode" autoComplete="postal-code" required={required} value={billing.postalCode} onChange={(e) => onChange({ postalCode: e.target.value })} />
+				<Input id="billing-postcode" autoComplete="postal-code" required={required} value={billing.postalCode} onChange={(e) => onChange({ postalCode: e.target.value })} aria-invalid={err('postalCode') ? true : undefined} aria-describedby={describedBy('billing-postcode', false, err('postalCode'))} />
 			</Field>
 			<Field htmlFor="billing-country" label="Country" required={required} error={err('country')}>
-				<select id="billing-country" className="field" autoComplete="country" value={billing.country} onChange={(e) => onChange({ country: e.target.value })}>
+				<select
+					id="billing-country"
+					className="field"
+					autoComplete="country"
+					value={billing.country}
+					onChange={(e) => onChange({ country: e.target.value })}
+					aria-invalid={err('country') ? true : undefined}
+					aria-describedby={describedBy('billing-country', false, err('country'))}
+				>
 					{countries.map((o) => (
 						<option key={o.code} value={o.code}>
 							{o.name}

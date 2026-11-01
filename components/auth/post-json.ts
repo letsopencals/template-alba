@@ -1,5 +1,12 @@
-/** Result of a JSON POST/PUT to the template's own `/api/*` routes. */
-export type PostResult = { ok: true } | { ok: false; status: number; message: string; fields: Record<string, string> };
+import { fieldErrorsOf, type ApiFieldErrors } from '@/lib/field-errors';
+
+/**
+ * Result of a JSON POST/PUT to the template's own `/api/*` routes. `fieldErrors` is the API's list as sent
+ * (`customer.phone`-style paths); map it onto the form with `mapFieldErrors`.
+ */
+export type PostResult =
+	| { ok: true }
+	| { ok: false; status: number; message: string; fields: Record<string, string>; fieldErrors: ApiFieldErrors };
 
 /**
  * Sends JSON and reports success by status (204 counts), unlike
@@ -20,8 +27,8 @@ export async function sendJson(url: string, body: unknown, method: 'POST' | 'PUT
 			if (typeof msg === 'string') fields[k] = msg;
 		}
 		const raw = typeof data.error === 'string' ? data.error : typeof data.message === 'string' ? data.message : '';
-		return { ok: false, status: res.status, message: raw || 'Something went wrong. Please try again.', fields };
+		return { ok: false, status: res.status, message: raw || 'Something went wrong. Please try again.', fields, fieldErrors: fieldErrorsOf(data) };
 	} catch {
-		return { ok: false, status: 0, message: 'We couldn’t reach the clinic. Check your connection and try again.', fields: {} };
+		return { ok: false, status: 0, message: 'We couldn’t reach the clinic. Check your connection and try again.', fields: {}, fieldErrors: [] };
 	}
 }

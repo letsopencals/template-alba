@@ -12,6 +12,7 @@ import { sendJson } from '@/components/auth/post-json';
 import { onSessionExpired } from '@/lib/session-expired';
 import { SettingsCard } from '@/components/account/settings/settings-card';
 import type { CareProfile } from '@/components/account/use-profile';
+import { mapFieldErrors, PHONE_HINT, phoneNeedsCountryCode } from '@/lib/field-errors';
 
 const schema = z.object({
 	firstName: z.string().trim().min(1, 'Please enter your first name').max(100),
@@ -20,9 +21,11 @@ const schema = z.object({
 		.string()
 		.trim()
 		.max(30)
+		.refine((v) => !phoneNeedsCountryCode(v), PHONE_HINT)
 		.refine((v) => !v || /^[+()\d\s.-]{6,}$/.test(v), 'Please enter a valid phone number'),
 });
 type Values = z.infer<typeof schema>;
+const FIELD_KEYS = ['firstName', 'lastName', 'phone'] as const satisfies readonly (keyof Values)[];
 
 function valuesOf(p: CareProfile): Values {
 	return { firstName: p.firstName ?? '', lastName: p.lastName ?? '', phone: p.phone ?? '' };
@@ -52,8 +55,10 @@ export function ProfileForm({ profile, onSaved }: { profile: CareProfile; onSave
 			return;
 		}
 		if (res.status === 401) return onSessionExpired();
-		for (const [k, v] of Object.entries(res.fields)) if (k in data) setError(k as keyof Values, { message: v });
-		setResult({ tone: 'error', text: res.message });
+		// Each field error goes under its field; the notice is only for what has no field here.
+		const { fields, unmapped } = mapFieldErrors(res.fieldErrors, FIELD_KEYS);
+		for (const [k, v] of Object.entries(fields) as [keyof Values, string][]) setError(k, { message: v });
+		if (Object.keys(fields).length === 0 || unmapped.length > 0) setResult({ tone: 'error', text: res.message });
 	};
 
 	return (
@@ -68,8 +73,8 @@ export function ProfileForm({ profile, onSaved }: { profile: CareProfile; onSave
 						<Input {...fieldAria('profile-last', errors.lastName?.message)} autoComplete="family-name" {...register('lastName')} />
 					</Field>
 				</div>
-				<Field id="profile-phone" label="Phone" optional error={errors.phone?.message}>
-					<Input {...fieldAria('profile-phone', errors.phone?.message)} type="tel" autoComplete="tel" {...register('phone')} />
+				<Field id="profile-phone" label="Phone" optional hint={PHONE_HINT} error={errors.phone?.message}>
+					<Input {...fieldAria('profile-phone', errors.phone?.message, PHONE_HINT)} type="tel" autoComplete="tel" placeholder="+44 7911 123456" {...register('phone')} />
 				</Field>
 				<Field id="profile-email" label="Email" hint="This is how you sign in. To change it, please call the clinic.">
 					<Input {...fieldAria('profile-email', undefined, 'This is how you sign in. To change it, please call the clinic.')} value={profile.email ?? ''} readOnly className="bg-porcelain-2 text-ink-2" />

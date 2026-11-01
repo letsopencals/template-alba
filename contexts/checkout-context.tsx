@@ -24,6 +24,7 @@ import { useCart } from '@/contexts/cart-context';
 import { useSettings } from '@/contexts/settings-context';
 import { usePaymentProviders } from '@/hooks/use-payment-providers';
 import { bookingStateOf, fileCheckout } from '@/lib/booking-state';
+import { fieldErrorsOf, mapFieldErrors, PHONE_HINT, phoneNeedsCountryCode, type ApiFieldErrors } from '@/lib/field-errors';
 
 /**
  * Clinic checkout is two steps — contact details, then payment. Intake
@@ -114,8 +115,25 @@ export function checkoutFieldsOf(cs: CheckoutSetting | null | undefined): Checko
 	};
 }
 
-/** Backend field paths (e.g. "billingAddress.city") → message. */
+/** Contact field key (`phone`, `billingAddress.city`, …) → message. */
 export type FieldErrors = Record<string, string>;
+
+/**
+ * The fields the contact part shows an error under. The billing name, email and phone are copies of the contact
+ * ones, so `customer.billingAddress.phone` lands on the phone input.
+ */
+const CONTACT_FIELD_KEYS = [
+	'firstName',
+	'lastName',
+	'email',
+	'phone',
+	'billingAddress.companyName',
+	'billingAddress.taxRegistrationId',
+	'billingAddress.addressLine1',
+	'billingAddress.city',
+	'billingAddress.postalCode',
+	'billingAddress.country',
+] as const;
 
 interface CheckoutContextValue {
 	step: CheckoutStep;
@@ -170,14 +188,14 @@ function trimmed(v: string): string | undefined {
 }
 
 /** An /api error: message, field errors, and the API's `code` (+ `orderId` for CART_ALREADY_CHECKED_OUT). */
-type ApiFailure = { message: string; fields: FieldErrors } & Pick<Partial<CheckoutErrorResponse>, 'code' | 'orderId'>;
+type ApiFailure = { message: string; fieldErrors: ApiFieldErrors } & Pick<Partial<CheckoutErrorResponse>, 'code' | 'orderId'>;
 
 async function readError(res: Response, fallback: string): Promise<ApiFailure> {
 	try {
-		const data = (await res.json()) as { error?: string; errors?: FieldErrors } & Pick<Partial<CheckoutErrorResponse>, 'code' | 'orderId'>;
-		return { message: data.error || fallback, fields: data.errors ?? {}, code: data.code, orderId: data.orderId };
+		const data = (await res.json()) as { error?: string } & Pick<Partial<CheckoutErrorResponse>, 'code' | 'orderId'>;
+		return { message: data.error || fallback, fieldErrors: fieldErrorsOf(data), code: data.code, orderId: data.orderId };
 	} catch {
-		return { message: fallback, fields: {} };
+		return { message: fallback, fieldErrors: [] };
 	}
 }
 
@@ -247,7 +265,60 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 		[clearCart, router],
 	);
 
-	const updateBilling = useCallback((patch: Partial<BillingDraft>) => setBilling((b) => ({ ...b, ...patch })), []);
+	/** Editing a field clears its error. */
+	const clearFieldErrors = useCallback((keys: string[]) => {
+		setFieldErrors((prev) => {
+			if (!keys.some((k) => k in prev)) return prev;
+			const next = { ...prev };
+			for (const k of keys) delete next[k];
+			return next;
+		});
+	}, []);
+	const editEmail = useCallback(
+		(v: string) => {
+			setEmail(v);
+			clearFieldErrors(['email']);
+		},
+		[clearFieldErrors],
+	);
+	const editFirstName = useCallback(
+		(v: string) => {
+			setFirstName(v);
+			clearFieldErrors(['firstName']);
+		},
+		[clearFieldErrors],
+	);
+	const editLastName = useCallback(
+		(v: string) => {
+			setLastName(v);
+			clearFieldErrors(['lastName']);
+		},
+		[clearFieldErrors],
+	);
+	const editPhone = useCallback(
+		(v: string) => {
+			setPhone(v);
+			clearFieldErrors(['phone']);
+		},
+		[clearFieldErrors],
+	);
+	const updateBilling = useCallback(
+		(patch: Partial<BillingDraft>) => {
+			setBilling((b) => ({ ...b, ...patch }));
+			clearFieldErrors(Object.keys(patch).map((k) => `billingAddress.${k}`));
+		},
+		[clearFieldErrors],
+	);
+
+	/**
+	 * Puts a 400's field errors under their fields and returns true when every one found a field (then the
+	 * generic message isn't needed).
+	 */
+	const showFieldErrors = useCallback((failure: ApiFailure): boolean => {
+		const { fields: mapped, unmapped } = mapFieldErrors(failure.fieldErrors, CONTACT_FIELD_KEYS);
+		setFieldErrors(mapped);
+		return Object.keys(mapped).length > 0 && unmapped.length === 0;
+	}, []);
 	const setConsent = useCallback(
 		(channel: ConsentChannel, value: boolean) => setConsentState((c) => ({ ...c, [channel]: value })),
 		[],
@@ -298,6 +369,10 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 		async (e: React.FormEvent) => {
 			e.preventDefault();
 			setError(null);
+			if (fields.phone !== 'hidden' && phoneNeedsCountryCode(phone)) {
+				setFieldErrors({ phone: PHONE_HINT });
+				return;
+			}
 			setFieldErrors({});
 			setSubmitting(true);
 
@@ -314,9 +389,9 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 				});
 
 				if (!res.ok) {
-					const { message, fields: errs } = await readError(res, 'We couldn’t save your details. Please check them and try again.');
-					setFieldErrors(errs);
-					throw new Error(message);
+					const failure = await readError(res, 'We couldn’t save your details. Please check them and try again.');
+					if (showFieldErrors(failure)) return;
+					throw new Error(failure.message);
 				}
 
 				const saved = (await res.json().catch(() => ({}))) as SaveCustomerResponse;
@@ -329,7 +404,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 				setSubmitting(false);
 			}
 		},
-		[sessionCustomerId, contactFields, email, cartHeaders],
+		[sessionCustomerId, contactFields, email, cartHeaders, fields.phone, phone, showFieldErrors],
 	);
 
 	// Final — submit the order.
@@ -439,6 +514,15 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 					if (failure.code === 'CHECKOUT_IN_PROGRESS') {
 						throw new Error('We’re already filing this visit. Give it a moment and try again.');
 					}
+					// A contact field the API rejected: back to the contact part, with the message under the field.
+					if (failure.fieldErrors.length > 0) {
+						const allMapped = showFieldErrors(failure);
+						setStep('customer');
+						if (allMapped) {
+							setSubmitting(false);
+							return;
+						}
+					}
 					throw new Error(failure.message);
 				}
 
@@ -462,7 +546,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 				setSubmitting(false);
 			}
 		},
-		[cartHeaders, customerId, contactFields, email, providers, openCard, loseHold, handleSubmitCheckout],
+		[cartHeaders, customerId, contactFields, email, providers, openCard, loseHold, handleSubmitCheckout, showFieldErrors],
 	);
 
 	const items = useMemo(() => cart?.items ?? [], [cart?.items]);
@@ -486,10 +570,10 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 			consent,
 			signedIn: Boolean(sessionCustomerId),
 			customerId,
-			setEmail,
-			setFirstName,
-			setLastName,
-			setPhone,
+			setEmail: editEmail,
+			setFirstName: editFirstName,
+			setLastName: editLastName,
+			setPhone: editPhone,
 			updateBilling,
 			setBillingOpen,
 			setConsent,
@@ -523,6 +607,10 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 			consent,
 			sessionCustomerId,
 			customerId,
+			editEmail,
+			editFirstName,
+			editLastName,
+			editPhone,
 			updateBilling,
 			setConsent,
 			providers,
