@@ -111,6 +111,7 @@ function visit(now: number, v: { id: string; slug: string; title: string; varian
 	const base: Partialish = {
 		id: v.id,
 		status: v.status,
+		pendingReason: null,
 		from: new Date(from).toISOString(),
 		to: new Date(from + 30 * 60_000).toISOString(),
 		createdAt: new Date(from - 20 * DAY).toISOString(),

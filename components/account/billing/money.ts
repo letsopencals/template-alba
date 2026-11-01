@@ -9,10 +9,12 @@ export function money(amount: number, currency: string): string {
 	}
 }
 
-export type PaymentTone = 'paid' | 'due' | 'refund';
+export type PaymentTone = 'paid' | 'due' | 'refund' | 'void';
 
 /** One calm word for where a statement stands. */
 export function statementStatus(o: Pick<OrderListItemResponse, 'paymentStatus' | 'refundStatus' | 'balance' | 'total'>): { label: string; tone: PaymentTone } {
+	// Cancelled before any payment: nothing is owed, so it must never read "To pay".
+	if (o.paymentStatus === 'voided') return { label: 'Cancelled — not charged', tone: 'void' };
 	if (o.refundStatus === 'fully-refunded') return { label: 'Refunded', tone: 'refund' };
 	if (o.refundStatus === 'partially-refunded') return { label: 'Part refunded', tone: 'refund' };
 	if (o.refundStatus === 'refund-owed') return { label: 'Refund on its way', tone: 'refund' };
@@ -26,12 +28,14 @@ export const TONE_CLASS: Record<PaymentTone, string> = {
 	paid: 'bg-mint text-mint-3',
 	due: 'bg-brass-2 text-brass',
 	refund: 'bg-lagoon-wash text-lagoon',
+	void: 'bg-porcelain-2 text-ink-3',
 };
 
 export const PROVIDER_LABEL: Record<string, string> = {
 	stripe: 'Card',
 	cash: 'In clinic',
 	bank_transfer: 'Bank transfer',
+	stripe_invoice: 'Invoice',
 	shopify: 'Online',
 	no_payment_required: 'No payment needed',
 };

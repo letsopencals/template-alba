@@ -24,18 +24,21 @@ const TITLE: Record<string, string> = {
 	stripe: 'Card',
 	cash: 'Pay at the studio',
 	bank_transfer: 'Bank transfer',
+	stripe_invoice: 'Pay by invoice',
 	no_payment_required: 'Nothing to pay today',
 };
 const COPY: Record<string, string> = {
 	stripe: 'Card, Apple Pay or Google Pay, paid securely now.',
 	cash: 'We hold the chair now. Pay at reception on the day, or after a video consultation.',
-	bank_transfer: 'We’ll email the transfer details with your confirmation.',
+	bank_transfer: 'The transfer details are on your appointment card and in your inbox.',
+	stripe_invoice: 'We email an invoice you can pay online, with the date it’s due.',
 	no_payment_required: 'This visit is free, so it’s confirmed straight away.',
 };
 const ACTION: Record<string, string> = {
 	stripe: 'Continue to card',
 	cash: 'Confirm, pay at the studio',
 	bank_transfer: 'Confirm, pay by transfer',
+	stripe_invoice: 'Confirm, pay by invoice',
 	no_payment_required: 'Confirm the visit',
 };
 
@@ -56,7 +59,7 @@ export function PaymentPart({ payLabel }: { payLabel: string }) {
 	if (c.step === 'payment' && c.paymentData) {
 		return (
 			<div className="space-y-5">
-				{c.selectedProvider === 'stripe' && c.paymentData.clientSecret ? (
+				{c.paymentData.clientSecret ? (
 					<StripePayment
 						clientSecret={c.paymentData.clientSecret}
 						stripeAccountId={c.paymentData.stripeAccountId}
@@ -105,9 +108,9 @@ export function PaymentPart({ payLabel }: { payLabel: string }) {
 				))}
 			</fieldset>
 			<p className="mt-4 text-[12.5px] text-ink-3">Claiming on dental insurance? We give you an itemised receipt to send in after the visit.</p>
-			{method === 'stripe' ? (
+			{c.providers.find((p) => p.name === method)?.checkoutMode === 'internal' ? (
 				<Button type="submit" size="lg" className="mt-6" disabled={!method || c.submitting || c.isExpired}>
-					{c.submitting ? 'One moment…' : ACTION.stripe}
+					{c.submitting ? 'One moment…' : (ACTION[method ?? ''] ?? 'Continue to card')}
 				</Button>
 			) : (
 				<div className="mt-6">

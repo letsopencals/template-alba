@@ -4,6 +4,7 @@ import { prepFor, siteConfig, studioMeta, type Prep } from '@/lib/site-config';
 import type { CalendarEvent } from '@/lib/calendar';
 import type { CareVisit } from '@/components/account/care-types';
 import type { VisitSnapshot } from './snapshot';
+import { waitingLabel } from '@/lib/booking-state';
 
 /** variant slug → department (collection) slug. */
 export type DepartmentIndex = Record<string, string>;
@@ -33,6 +34,8 @@ export interface CardVisit {
 	nickname: string | null;
 	addOns: string[];
 	prep: Prep;
+	/** "Awaiting payment" / "Awaiting the studio" while the visit waits; null or absent once booked. */
+	waiting?: string | null;
 }
 
 const short = (t: string | null | undefined) => (t ? t.replace(/^Alba\s+/i, '') : null);
@@ -97,6 +100,7 @@ export function cardsFromOrder(order: OrderDetailResponse | null | undefined, de
 				patientName: null,
 				nickname: null,
 				addOns: (li.addOnLineItems ?? []).map((ao) => ao.addOn?.title ?? 'Add-on'),
+				waiting: waitingLabel(a.status, a.pendingReason),
 			}),
 		];
 	});
@@ -149,6 +153,7 @@ export function cardFromCare(v: CareVisit): CardVisit {
 		patientName: v.patient.name,
 		nickname: v.patient.nickname,
 		addOns: v.addOns.map((a) => a.title),
+		waiting: waitingLabel(v.status, v.pendingReason),
 	});
 }
 

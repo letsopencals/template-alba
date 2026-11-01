@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
 import { useSearchParams } from 'next/navigation';
@@ -11,11 +11,13 @@ import type { CareRecord } from '@/components/account/care-types';
 import { useHydrated } from '@/hooks/use-hydrated';
 import { icsHref, ICS_FILENAME } from '@/lib/calendar';
 import { siteConfig } from '@/lib/site-config';
+import { bookingStateOf, readFiledCheckout, type BookingState } from '@/lib/booking-state';
 import { AppointmentCard } from './appointment-card';
 import { calendarEventOf, cardsFromOrder, cardsFromSnapshot, recallOf, type CardVisit, type DepartmentIndex } from './card-model';
 import { readSnapshot } from './snapshot';
 import { CardStack } from './card-stack';
 import { RecallPlate } from './recall-plate';
+import { PaymentSlip } from './payment-slip';
 
 // Guests can't read the order (the route needs a session): resolve to null, don't throw.
 async function quiet<T>(url: string): Promise<T | null> {
@@ -51,6 +53,15 @@ export function ThankYouView({ departments }: { departments: DepartmentIndex }) 
 			.sort((a, b) => a.from - b.from);
 	}, [order, departments, record, hydrated]);
 
+	// What submit returned for this order (this tab only): the booking state and how to pay.
+	const filed = useMemo(() => (hydrated ? readFiledCheckout(orderId) : null), [hydrated, orderId]);
+	const state: BookingState = order ? bookingStateOf((order.lineItems ?? []).map((li) => li.appointment)) : (filed?.state ?? 'booked');
+	// Payment details only while something is owed: not once the order reads back paid or voided.
+	const owing = order ? order.paymentStatus === 'unpaid' || order.paymentStatus === 'partially-paid' : true;
+	const instructions = owing ? (filed?.instructions ?? null) : null;
+	const slip =
+		instructions || (state === 'awaiting_payment' && owing) ? <PaymentSlip instructions={instructions} dueAt={order?.paymentDueAt} reference={order?.name ?? filed?.orderName ?? null} className="mt-8" /> : null;
+
 	const loading = isLoading || status === 'loading' || !hydrated;
 	return (
 		<section className="frame pt-24 pb-28 sm:pt-28">
@@ -61,9 +72,9 @@ export function ThankYouView({ departments }: { departments: DepartmentIndex }) 
 						<div className="aspect-[85/55] animate-pulse rounded-[18px] bg-porcelain-2" />
 					</div>
 				) : cards.length === 0 ? (
-					<NoCard orderName={order?.name ?? null} />
+					<NoCard orderName={order?.name ?? null} state={state} slip={slip} />
 				) : (
-					<Confirmed cards={cards} orderName={order?.name ?? null} authed={authed} />
+					<Confirmed cards={cards} orderName={order?.name ?? null} authed={authed} state={state} slip={slip} />
 				)}
 			</div>
 		</section>
@@ -80,7 +91,29 @@ function whenWords(ms: number): string {
 	return (ms - now < 6 * 86_400_000 ? '' : 'on ') + new Intl.DateTimeFormat('en-GB', { timeZone: siteConfig.timezone, ...o }).format(ms);
 }
 
-export function Confirmed({ cards, orderName, authed }: { cards: CardVisit[]; orderName: string | null; authed: boolean }) {
+/** The status line and lede per booking state. Waiting visits are "received", never "booked". */
+const STAMP: Record<BookingState, string> = { booked: 'Booked', awaiting_payment: 'Received · awaiting payment', awaiting_approval: 'Received · awaiting the studio' };
+
+function lede(state: BookingState, count: number): string {
+	const visits = count > 1 ? `${count} visits` : 'Your visit';
+	if (state === 'awaiting_payment') return `${visits} ${count > 1 ? 'are' : 'is'} held. It’s booked as soon as your payment arrives; how to pay is below and in your inbox.`;
+	if (state === 'awaiting_approval') return `${visits} ${count > 1 ? 'are' : 'is'} with the studio to confirm. We’ll email you as soon as they do. Turn the card over for what to bring.`;
+	return `${count > 1 ? `${count} visits are booked. ` : ''}Your confirmation is in your inbox, and we’ll remind you the day before. Turn the card over for what to bring.`;
+}
+
+export function Confirmed({
+	cards,
+	orderName,
+	authed,
+	state = 'booked',
+	slip = null,
+}: {
+	cards: CardVisit[];
+	orderName: string | null;
+	authed: boolean;
+	state?: BookingState;
+	slip?: ReactNode;
+}) {
 	const [index, setIndex] = useState(0);
 	const current = cards[Math.min(index, cards.length - 1)]!;
 	const first = cards[0]!;
@@ -92,14 +125,14 @@ export function Confirmed({ cards, orderName, authed }: { cards: CardVisit[]; or
 			<div className="grid gap-12 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.25fr)] lg:items-center lg:gap-16">
 				<div>
 					<p className="t-anno flex items-center gap-2">
-						<span className="status-light" aria-hidden /> Booked{orderName ? ` · Ref ${orderName}` : ''}
+						<span className="status-light" data-state={state === 'booked' ? undefined : 'soon'} aria-hidden /> {STAMP[state]}
+						{orderName ? ` · Ref ${orderName}` : ''}
 					</p>
 					<h1 className="t-xl mt-5 text-ink">
-						See you <em>{whenWords(first.from)}.</em>
+						{state === 'booked' ? 'See you' : 'Pencilled in for'} <em>{whenWords(first.from)}.</em>
 					</h1>
-					<p className="t-lede mt-6 max-w-[40ch]">
-						{cards.length > 1 ? `${cards.length} visits are booked. ` : ''}Your confirmation is in your inbox, and we&rsquo;ll remind you the day before. Turn the card over for what to bring.
-					</p>
+					<p className="t-lede mt-6 max-w-[40ch]">{lede(state, cards.length)}</p>
+					{slip}
 
 					<div className="mt-8 flex flex-wrap gap-x-6 gap-y-3">
 						<a href={icsHref(cards.map(calendarEventOf))} download={ICS_FILENAME} className="link-hair text-[14.5px] text-ink">
@@ -141,14 +174,33 @@ export function Confirmed({ cards, orderName, authed }: { cards: CardVisit[]; or
 	);
 }
 
-export function NoCard({ orderName }: { orderName: string | null }) {
+export function NoCard({ orderName, state = 'booked', slip = null }: { orderName: string | null; state?: BookingState; slip?: ReactNode }) {
 	return (
 		<div className="mx-auto max-w-[640px] py-10 text-center">
-			<p className="t-anno">Booked{orderName ? ` · Ref ${orderName}` : ''}</p>
+			<p className="t-anno">
+				{STAMP[state]}
+				{orderName ? ` · Ref ${orderName}` : ''}
+			</p>
 			<h1 className="t-lg mt-5 text-ink">
-				You&rsquo;re <em>booked.</em>
+				{state === 'booked' ? (
+					<>
+						You&rsquo;re <em>booked.</em>
+					</>
+				) : (
+					<>
+						Request <em>received.</em>
+					</>
+				)}
 			</h1>
-			<p className="t-lede mx-auto mt-5 max-w-[44ch]">Your appointment card is in your inbox. Sign in with the same email to see it in My Smile and change it if you need to.</p>
+			<p className="t-lede mx-auto mt-5 max-w-[44ch]">
+				{state === 'awaiting_payment'
+					? 'Your visit is held until you pay; it’s booked once the payment arrives. '
+					: state === 'awaiting_approval'
+						? 'The studio will confirm your visit shortly and email you. '
+						: ''}
+				Your appointment card is in your inbox. Sign in with the same email to see it in My Smile and change it if you need to.
+			</p>
+			{slip ? <div className="text-left">{slip}</div> : null}
 			<Link href="/auth/sign-in?callbackUrl=/account" className="link-hair mt-8 inline-block text-lagoon">
 				Sign in to My Smile
 			</Link>

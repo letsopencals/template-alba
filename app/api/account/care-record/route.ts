@@ -41,7 +41,8 @@ export async function GET() {
 			),
 			getDepartmentIndex(),
 		]);
-		const found = details.filter((d): d is AppointmentDetailResponse => !!d);
+		// Pending with no order = a cart hold, not a booking (it lapses with the cart). Leave it out.
+		const found = details.filter((d): d is AppointmentDetailResponse => !!d && !(d.status === 'pending' && !d.orderLineItem));
 		const keys = await intakeKeysFor(found.map((d) => d.product?.id));
 
 		const visits = found

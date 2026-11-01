@@ -20,7 +20,7 @@ import './record.css';
 /** /checkout: the patient record. One sheet, ruled margin of field codes, nothing folds away. */
 export function CheckoutView() {
 	const { cart, cartId, isLoaded } = useCart();
-	const { checkoutComplete } = useCheckout();
+	const { checkoutComplete, holdLost } = useCheckout();
 
 	if (checkoutComplete) {
 		return (
@@ -29,6 +29,21 @@ export function CheckoutView() {
 					<span className="status-light" aria-hidden />
 					<p className="t-md text-ink">Filing your record…</p>
 					<p className="text-[14px] text-ink-2">Your appointment card is on its way.</p>
+				</div>
+			</Shell>
+		);
+	}
+	if (holdLost) {
+		return (
+			<Shell>
+				<div className="record p-10 text-center" role="alert">
+					<p className="t-md text-ink">That chair time has gone.</p>
+					<p className="mx-auto mt-3 max-w-[46ch] text-[15px] text-ink-2">
+						Someone else booked it while you were filling in the record. Nothing was taken. Pick another time and we&rsquo;ll hold it for you.
+					</p>
+					<Link href="/book" className="link-hair mt-6 inline-block text-lagoon">
+						Back to the chair planner
+					</Link>
 				</div>
 			</Shell>
 		);

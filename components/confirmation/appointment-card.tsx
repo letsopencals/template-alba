@@ -76,7 +76,7 @@ export function AppointmentCard({ visit, timeZone = siteConfig.timezone, classNa
 							<p className="font-display text-[clamp(20px,3vw,28px)] leading-none text-lagoon">alba</p>
 							<p className="t-anno mt-1 !text-[8.5px]">Dental · {visit.studioTitle ?? 'London'}</p>
 						</div>
-						<p className="t-anno text-right !text-[8.5px]">{label}</p>
+						<p className="t-anno text-right !text-[8.5px]">{visit.waiting ?? label}</p>
 					</div>
 					{/* The printed chart strip across the top of the card stock. */}
 					<ToothStrip tone="light" numbers={false} highlight={highlightFor(visit)} className="mt-[clamp(8px,2vw,16px)] h-[clamp(22px,4.5vw,40px)] opacity-80" />
